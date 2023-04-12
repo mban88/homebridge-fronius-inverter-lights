@@ -1,7 +1,7 @@
 import { AccessoryPlugin, HAP, Logging, Service } from 'homebridge';
 import { FroniusApi } from './fronius-api';
 
-export type Metering = 'Import' | 'Export' | 'Load' | 'PV';
+export type Metering = 'Import' | 'Export' | 'Load' | 'PV' | 'Battery';
 
 export class FroniusAccessory implements AccessoryPlugin {
   private readonly log: Logging;
@@ -151,6 +151,14 @@ export class FroniusAccessory implements AccessoryPlugin {
             : 100;
           this.onValue = pvValue !== null;
           this.luxValue = pvValue ?? 0;
+          break;
+        }
+        case 'Battery': {
+          const akkuValue = Math.abs(data.P_Akku);
+          const akkuLoad = data.SOC; // percentage value of battery capacity
+          this.brightnessValue = akkuLoad;
+          this.onValue = data.P_Akku > 0; // on if energy is used from battery
+          this.luxValue = akkuValue;
           break;
         }
       }
